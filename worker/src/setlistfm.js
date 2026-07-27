@@ -1,42 +1,46 @@
-const BASE_URL = 'https://api.setlist.fm/rest/1.0'
+import { withRateLimit } from './rateLimiter.js';
 
-export async function searchArtists(name) {
-    const response = await fetch(`${BASE_URL}/search/artists?
-    artistName=${encodedURIComponent(name)}`,
-        {
-            headers: {
-                'x-api-key':
-                process.env.SETLISTFM_API_KEY,
-                Accept: 'application/json',
-            },
-        });
-    if (!response.ok) {
-        throw new Error(
-            `setlist.fm search failed:
-            ${response.status}
-            ${response.statusText}`
-        );
+const BASE_URL = 'https://api.setlist.fm/rest/1.0';
+
+async function searchArtistsLive(name) {
+  const response = await fetch(
+    `${BASE_URL}/search/artists?artistName=${encodeURIComponent(name)}`,
+    {
+      headers: {
+        'x-api-key': process.env.SETLISTFM_API_KEY,
+        Accept: 'application/json',
+      },
     }
-    return response.json();
-}
+  );
 
-export async function getArtistSetlists(mbid, page = 1) {
-    const response = await fetch(
-        `${BASE_URL}/search/${mbid}/setlists?p=${page}`,
-        {
-            headers: {
-                'x-api-key':
-                process.env.SETLISTFM_API_KEY,
-                Accept: 'application/json',
-            },
-        }
+  if (!response.ok) {
+    throw new Error(
+      `setlist.fm search failed: ${response.status} ${response.statusText}`
     );
+  }
 
-    if (!response.ok) {
-        throw new Error(
-            `setlist.fm setlists fetch failed: ${response.status}
-            ${response.statusText}`
-        );
-    }
-    return response.json();
+  return response.json();
 }
+
+async function getArtistSetlistsLive(mbid, page = 1) {
+  const response = await fetch(
+    `${BASE_URL}/artist/${mbid}/setlists?p=${page}`,
+    {
+      headers: {
+        'x-api-key': process.env.SETLISTFM_API_KEY,
+        Accept: 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `setlist.fm setlists fetch failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json();
+}
+
+export const searchArtists = withRateLimit(searchArtistsLive);
+export const getArtistSetlists = withRateLimit(getArtistSetlistsLive);

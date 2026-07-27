@@ -1,6 +1,7 @@
 CREATE TABLE artists (
     mbid UUID PRIMARY KEY,
     name TEXT NOT NULL,
+    last_viewed_at TIMESTAMPTZ,
     fetched_at TIMESTAMPTZ NOT NULL
 DEFAULT now()
 );

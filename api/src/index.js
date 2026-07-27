@@ -47,6 +47,11 @@ const resolvers = {
     songFrequency: async (_, { mbid }) => {
       await ensureArtistCached(mbid);
 
+      await pool.query(
+          'UPDATE artists SET last_viewed_at = now() WHERE mbid = $1',
+          [mbid]
+      );
+
       const result = await pool.query(
         `WITH total_shows AS (
            SELECT COUNT(*)::numeric AS count
